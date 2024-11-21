@@ -1,13 +1,14 @@
 package hw03frequencyanalysis
 
 import (
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/require"
 )
 
 // Change to true if needed.
-var taskWithAsteriskIsCompleted = false
+var taskWithAsteriskIsCompleted = true
 
 var text = `Как видите, он  спускается  по  лестнице  вслед  за  своим
 	другом   Кристофером   Робином,   головой   вниз,  пересчитывая
@@ -78,5 +79,33 @@ func TestTop10(t *testing.T) {
 			}
 			require.Equal(t, expected, Top10(text))
 		}
+	})
+
+	t.Run("spaces only string", func(t *testing.T) {
+		require.Len(t, Top10("     \t\t\n"), 0)
+	})
+
+	t.Run("mixed case words", func(t *testing.T) {
+		text := "Hello hello HELLO HeLLo hElLo"
+		expected := []string{"hello"}
+		require.Equal(t, expected, Top10(text))
+	})
+
+	t.Run("words with punctuation", func(t *testing.T) {
+		text := "cat! cat? cat. cat, cat: cat; cat-cat"
+		expected := []string{"cat", "cat-cat"}
+		require.Equal(t, expected, Top10(text))
+	})
+
+	t.Run("long string with one repeated word", func(t *testing.T) {
+		text := strings.Repeat("word ", 100)
+		expected := []string{"word"}
+		require.Equal(t, expected, Top10(text))
+	})
+
+	t.Run("lexicographical sorting", func(t *testing.T) {
+		text := "apple banana banana apple orange orange orange"
+		expected := []string{"orange", "apple", "banana"}
+		require.Equal(t, expected, Top10(text))
 	})
 }
