@@ -1,4 +1,4 @@
-module github.com/fixme_my_friend/hw05_parallel_execution
+module github.com/devv4n/otus-hw/hw02_unpack_string
 
 go 1.22
 
