@@ -1,4 +1,4 @@
-module github.com/devv4n/otus-hw/hw02_unpack_string
+module github.com/devv4n/otus-hw/hw04_unpack_string
 
 go 1.22
 
