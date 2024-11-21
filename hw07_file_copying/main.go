@@ -2,6 +2,8 @@ package main
 
 import (
 	"flag"
+	"fmt"
+	"os"
 )
 
 var (
@@ -18,5 +20,18 @@ func init() {
 
 func main() {
 	flag.Parse()
-	// Place your code here.
+
+	if from == "" || to == "" {
+		fmt.Println("both -from and -to arguments are required")
+
+		os.Exit(1)
+	}
+
+	if err := Copy(from, to, offset, limit); err != nil {
+		fmt.Printf("copy failed: %v\n", err)
+
+		os.Exit(1)
+	}
+
+	fmt.Println("file copied successfully")
 }
