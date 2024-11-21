@@ -67,4 +67,51 @@ func TestRun(t *testing.T) {
 		require.Equal(t, runTasksCount, int32(tasksCount), "not all tasks were completed")
 		require.LessOrEqual(t, int64(elapsedTime), int64(sumTime/2), "tasks were run sequentially?")
 	})
+
+	t.Run("no tasks", func(t *testing.T) {
+		tasks := []Task{}
+		workersCount := 5
+		maxErrorsCount := 1
+
+		err := Run(tasks, workersCount, maxErrorsCount)
+		require.NoError(t, err, "empty task list should not return an error")
+	})
+
+	t.Run("single task with no errors", func(t *testing.T) {
+		tasks := []Task{
+			func() error {
+				return nil
+			},
+		}
+		workersCount := 5
+		maxErrorsCount := 1
+
+		err := Run(tasks, workersCount, maxErrorsCount)
+		require.NoError(t, err, "single task should not return an error")
+	})
+
+	t.Run("concurrency check", func(t *testing.T) {
+		var maxConcurrency int32
+		var currentConcurrency int32
+
+		tasks := make([]Task, 100)
+		for i := range tasks {
+			tasks[i] = func() error {
+				atomic.AddInt32(&currentConcurrency, 1)
+				defer atomic.AddInt32(&currentConcurrency, -1)
+
+				if atomic.LoadInt32(&currentConcurrency) > maxConcurrency {
+					atomic.StoreInt32(&maxConcurrency, currentConcurrency)
+				}
+
+				time.Sleep(10 * time.Millisecond)
+				return nil
+			}
+		}
+
+		workersCount := 10
+		err := Run(tasks, workersCount, 1)
+		require.NoError(t, err)
+		require.Equal(t, int32(workersCount), maxConcurrency, "not all workers ran concurrently")
+	})
 }
