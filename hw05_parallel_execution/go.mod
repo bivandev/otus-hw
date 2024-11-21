@@ -1,4 +1,4 @@
-module github.com/devv4n/otus-hw/hw05_unpack_string
+module github.com/devv4n/otus-hw/hw05_parallel_execution
 
 go 1.22
 
