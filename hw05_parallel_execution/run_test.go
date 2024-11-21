@@ -100,8 +100,14 @@ func TestRun(t *testing.T) {
 				atomic.AddInt32(&currentConcurrency, 1)
 				defer atomic.AddInt32(&currentConcurrency, -1)
 
-				if atomic.LoadInt32(&currentConcurrency) > maxConcurrency {
-					atomic.StoreInt32(&maxConcurrency, currentConcurrency)
+				for {
+					oldMax := atomic.LoadInt32(&maxConcurrency)
+					current := atomic.LoadInt32(&currentConcurrency)
+					if current > oldMax && atomic.CompareAndSwapInt32(&maxConcurrency, oldMax, current) {
+						break
+					} else if current <= oldMax {
+						break
+					}
 				}
 
 				time.Sleep(10 * time.Millisecond)
