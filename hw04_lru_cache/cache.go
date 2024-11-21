@@ -32,7 +32,6 @@ func (l *lruCache) Set(key Key, value interface{}) bool {
 		l.queue.MoveToFront(item.item)
 	} else {
 		if l.capacity == l.queue.Len() {
-
 			back := l.queue.Back()
 
 			valKey, ok := back.Value.(Key)
