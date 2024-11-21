@@ -90,4 +90,58 @@ func TestPipeline(t *testing.T) {
 		require.Len(t, result, 0)
 		require.Less(t, int64(elapsed), int64(abortDur)+int64(fault))
 	})
+	t.Run("empty input", func(t *testing.T) {
+		in := make(Bi)
+		close(in)
+
+		result := make([]interface{}, 0)
+		for s := range ExecutePipeline(in, nil, stages...) {
+			result = append(result, s)
+		}
+
+		require.Empty(t, result, "result should be empty for empty input")
+	})
+
+	t.Run("no stages", func(t *testing.T) {
+		in := make(Bi)
+		data := []int{10, 20, 30}
+		go func() {
+			for _, v := range data {
+				in <- v
+			}
+			close(in)
+		}()
+
+		result := make([]int, 0)
+		for s := range ExecutePipeline(in, nil) {
+			result = append(result, s.(int))
+		}
+
+		require.Equal(t, data, result, "result should match input data when no stages are provided")
+	})
+
+	t.Run("early stop", func(t *testing.T) {
+		in := make(Bi)
+		done := make(Bi)
+
+		data := []int{1, 2, 3, 4, 5}
+		go func() {
+			for _, v := range data {
+				in <- v
+			}
+			close(in)
+		}()
+
+		go func() {
+			time.Sleep(sleepPerStage * 2)
+			close(done)
+		}()
+
+		result := make([]string, 0)
+		for s := range ExecutePipeline(in, done, stages...) {
+			result = append(result, s.(string))
+		}
+
+		require.LessOrEqual(t, len(result), 2, "result should contain at most 2 items due to early stop")
+	})
 }
