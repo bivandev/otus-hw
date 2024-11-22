@@ -30,26 +30,28 @@ func (l *lruCache) Set(key Key, value interface{}) bool {
 		item.value = value
 
 		l.queue.MoveToFront(item.item)
-	} else {
-		if l.capacity == l.queue.Len() {
-			back := l.queue.Back()
 
-			valKey, ok := back.Value.(Key)
-			if !ok {
-				fmt.Println("Error while deleting cache item")
-				return ok
-			}
+		return ok
+	}
 
-			delete(l.items, valKey)
+	if l.capacity == l.queue.Len() {
+		back := l.queue.Back()
 
-			l.queue.Remove(back)
+		valKey, ok := back.Value.(Key)
+		if !ok {
+			fmt.Println("Error while deleting cache item")
+			return ok
 		}
 
-		l.items[key] = &cacheItem{
-			key:   key,
-			value: value,
-			item:  l.queue.PushFront(key),
-		}
+		delete(l.items, valKey)
+
+		l.queue.Remove(back)
+	}
+
+	l.items[key] = &cacheItem{
+		key:   key,
+		value: value,
+		item:  l.queue.PushFront(key),
 	}
 
 	return ok
