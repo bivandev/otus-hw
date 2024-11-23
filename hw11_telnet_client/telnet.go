@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"io"
 	"net"
@@ -34,7 +35,7 @@ func NewTelnetClient(address string, timeout time.Duration, in io.ReadCloser, ou
 func (c *telnetClient) Connect() error {
 	conn, err := net.DialTimeout("tcp", c.address, c.timeout)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to connect: %w", err)
 	}
 	c.conn = conn
 
@@ -43,6 +44,12 @@ func (c *telnetClient) Connect() error {
 
 func (c *telnetClient) Send() error {
 	_, err := io.Copy(c.conn, c.in)
+	if errors.Is(err, io.EOF) {
+		fmt.Fprintln(c.out, "...EOF")
+
+		return nil
+	}
+
 	return err
 }
 
@@ -53,8 +60,6 @@ func (c *telnetClient) Receive() error {
 
 func (c *telnetClient) Close() error {
 	if c.conn != nil {
-
-		fmt.Fprintln(c.out, "...Connection closed by peer")
 		return c.conn.Close()
 	}
 	return nil

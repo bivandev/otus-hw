@@ -2,9 +2,11 @@ package main
 
 import (
 	"context"
+	"errors"
 	"flag"
 	"fmt"
 	"io"
+	"net"
 	"os"
 	"os/signal"
 	"syscall"
@@ -12,45 +14,48 @@ import (
 )
 
 func main() {
-	var address string
-	var timeout time.Duration
-	flag.StringVar(&address, "address", "localhost:8080", "Address to connect to (host:port)")
-	flag.DurationVar(&timeout, "timeout", 10*time.Second, "Connection timeout")
+	timeout := flag.Duration("timeout", 10*time.Second, "Connection timeout")
+
 	flag.Parse()
 
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
+	if len(flag.Args()) < 2 {
+		fmt.Fprintln(os.Stderr, "Usage: go-telnet --timeout=10s host port")
+		os.Exit(1)
+	}
 
-	sigCh := make(chan os.Signal, 1)
-	signal.Notify(sigCh, syscall.SIGINT)
+	host, port := flag.Arg(0), flag.Arg(1)
+	address := net.JoinHostPort(host, port)
 
-	client := NewTelnetClient(address, timeout, os.Stdin, os.Stdout)
+	client := NewTelnetClient(address, *timeout, os.Stdin, os.Stdout)
+
+	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+	defer stop()
 
 	if err := client.Connect(); err != nil {
-		fmt.Fprintf(os.Stderr, "Failed to connect: %v\n", err)
-		return
+		fmt.Fprintf(os.Stderr, "Failed to connect to %s: %v\n", address, err)
+
+		stop()
+
+		os.Exit(1) //nolint:gocritic
 	}
 	defer client.Close()
 
 	go func() {
-		if err := client.Receive(); err != nil && err != io.EOF {
-			fmt.Fprintf(os.Stderr, "Failed to receive data: %v\n", err)
+		if err := client.Receive(); err != nil && !errors.Is(err, io.EOF) {
+			fmt.Fprintf(os.Stderr, "Receive error: %v\n", err)
 		}
-		cancel()
+
+		stop()
 	}()
 
 	go func() {
 		if err := client.Send(); err != nil {
-			fmt.Fprintf(os.Stderr, "Failed to send data: %v\n", err)
-			cancel()
+			fmt.Fprintf(os.Stderr, "Send error: %v\n", err)
 		}
+		stop()
 	}()
 
-	select {
-	case <-sigCh:
-		fmt.Fprintln(os.Stderr, "Received SIGINT, terminating...")
-	case <-ctx.Done():
-	}
+	<-ctx.Done()
 
-	fmt.Fprintln(os.Stderr, "...EOF")
+	fmt.Fprintln(os.Stderr, "...Connection closed, exiting")
 }
