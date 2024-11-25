@@ -24,11 +24,11 @@ issues:
         - dupl
         - gocyclo
         - gosec
-    - path: pkg/mod/
-      linters:
-        - all
+
   exclude-dirs:
     - go
+    - pkg
+    - third_party
 
 linters:
   disable-all: true

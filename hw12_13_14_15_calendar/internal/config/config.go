@@ -18,28 +18,40 @@ var levelNames = map[string]slog.Level{
 
 type Config struct {
 	LogLvl      string `json:"logLevel"`
-	Port        int    `json:"port"`
+	GRPC        string `json:"grpcAddr"`
+	REST        string `json:"restAddr"`
 	UsePostgres bool   `json:"postgres"`
 	PostgresDSN string `json:"postgresDsn"`
 
 	LogLevel slog.Level
 }
 
-var ErrInvalidConfig = errors.New("error invalid config")
+var (
+	ErrInvalidConfig  = errors.New("error invalid config")
+	ErrConfigNotFound = errors.New("error config not found")
+)
 
 // LoadConfig загружает и парсит конфигурацию из JSON файла.
 func LoadConfig(path string) (*Config, error) {
 	var cfg Config
 
-	if filepath.Ext(path) != ".json" {
-		return nil, fmt.Errorf("unsupported file extension: %s, expected a .json file", filepath.Ext(path))
-	}
-
 	file, err := os.Open(path)
 	if err != nil {
-		err = DefaultConfig(&cfg)
+		if errors.Is(err, os.ErrNotExist) {
+			if path == "config.json" {
+				DefaultConfig(&cfg)
+
+				return &cfg, nil
+			}
+
+			return nil, ErrConfigNotFound
+		}
 
 		return &cfg, fmt.Errorf("failed to open config file: %w", err)
+	}
+
+	if filepath.Ext(path) != ".json" {
+		return nil, fmt.Errorf("unsupported file extension: %s, expected a .json file", filepath.Ext(path))
 	}
 
 	defer func() {
@@ -60,7 +72,8 @@ func LoadConfig(path string) (*Config, error) {
 }
 
 const (
-	defaultPort     = 8080
+	defaultPortREST = "8080"
+	defaultPortGRPC = "9000"
 	defaultLogLevel = "info"
 )
 
@@ -72,18 +85,20 @@ func ValidateConfig(cfg *Config) error {
 	return nil
 }
 
-func DefaultConfig(cfg *Config) error {
+func DefaultConfig(cfg *Config) {
 	if _, ok := levelNames[cfg.LogLvl]; !ok {
 		cfg.LogLvl = defaultLogLevel
 	}
 
-	if cfg.Port == 0 {
-		cfg.Port = defaultPort
+	if cfg.REST == "" {
+		cfg.REST = defaultPortREST
+	}
+
+	if cfg.GRPC == "" {
+		cfg.GRPC = defaultPortGRPC
 	}
 
 	if cfg.PostgresDSN == "" && cfg.UsePostgres {
 		cfg.UsePostgres = false
 	}
-
-	return nil
 }
