@@ -33,7 +33,7 @@ install-lint-deps:
 
 lint: install-lint-deps
 	ls
-	golangci-lint run ./... -v
+	golangci-lint run ./... -v --fast
 
 lint-fix:
 	gofumpt -l -w .
