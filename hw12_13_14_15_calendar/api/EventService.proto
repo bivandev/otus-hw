@@ -2,6 +2,97 @@ syntax = "proto3";
 
 package event;
 
-message Event {
-    // TODO
+import "google/api/annotations.proto";
+import "google/protobuf/empty.proto";
+import "google/protobuf/timestamp.proto";
+
+option go_package = "github.com/devv4n/otus-hw/hw12_13_14_15_calendar/pkg/calendarapi;calendar";
+
+service CalendarService {
+  rpc CreateEvent(CreateEventRequest) returns (CreateEventResponse) {
+    option (google.api.http) = {
+      post: "/v1/events"
+      body: "*"
+    };
+  }
+
+  rpc UpdateEvent(UpdateEventRequest) returns (google.protobuf.Empty) {
+    option (google.api.http) = {
+      put: "/v1/events/{id}"
+      body: "*"
+    };
+  }
+
+  rpc DeleteEvent(DeleteEventRequest) returns (DeleteEventResponse) {
+    option (google.api.http) = {
+      delete: "/v1/events/{id}"
+    };
+  }
+
+  rpc ListEventsForDay(ListEventsForDayRequest) returns (ListEventsResponse) {
+    option (google.api.http) = {
+      get: "/v1/events/day"
+    };
+  }
+
+  rpc ListEventsForWeek(ListEventsForWeekRequest) returns (ListEventsResponse) {
+    option (google.api.http) = {
+      get: "/v1/events/week"
+    };
+  }
+
+  rpc ListEventsForMonth(ListEventsForMonthRequest) returns (ListEventsResponse) {
+    option (google.api.http) = {
+      get: "/v1/events/month"
+    };
+  }
 }
+
+
+message Event {
+  string id = 1;
+  string title = 2;
+  google.protobuf.Timestamp event_time = 3;
+  int64 duration = 4;
+  optional string description = 5;
+  string user_id = 6;
+  optional int64 notify_before = 7;
+  optional google.protobuf.Timestamp created_at = 8;
+  optional google.protobuf.Timestamp updated_at = 9;
+}
+
+message CreateEventRequest {
+  Event event = 1;
+}
+
+message CreateEventResponse {
+  string id = 1;
+}
+
+message UpdateEventRequest {
+  string id = 1;
+  Event event = 2;
+}
+
+message DeleteEventRequest {
+  string id = 1;
+}
+
+message DeleteEventResponse {}
+
+message ListEventsForDayRequest {
+  google.protobuf.Timestamp date = 1;
+}
+
+message ListEventsForWeekRequest {
+  google.protobuf.Timestamp start_of_week = 1;
+}
+
+message ListEventsForMonthRequest {
+  google.protobuf.Timestamp start_of_month = 1;
+}
+
+message ListEventsResponse {
+  repeated Event events = 1;
+}
+

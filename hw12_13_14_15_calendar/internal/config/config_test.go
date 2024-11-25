@@ -15,7 +15,6 @@ func TestLoadConfig_Success(t *testing.T) {
 
 	cfgData := map[string]interface{}{
 		"logLevel": "debug",
-		"port":     9090,
 	}
 
 	file, err := os.Create(configFile)
@@ -30,7 +29,6 @@ func TestLoadConfig_Success(t *testing.T) {
 	assert.NoError(t, err)
 
 	assert.Equal(t, "debug", cfg.LogLvl)
-	assert.Equal(t, 9090, cfg.Port)
 	assert.Equal(t, levelNames["debug"], cfg.LogLevel)
 }
 
@@ -41,7 +39,7 @@ func TestLoadConfig_UnsupportedExtension(t *testing.T) {
 	_, err := LoadConfig(configFile)
 
 	assert.Error(t, err)
-	assert.Contains(t, err.Error(), "unsupported file extension")
+	assert.Equal(t, err, ErrConfigNotFound)
 }
 
 func TestLoadConfig_InvalidJSON(t *testing.T) {

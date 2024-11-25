@@ -8,11 +8,10 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
-	"time"
 
 	"github.com/devv4n/otus-hw/hw12_13_14_15_calendar/internal/app"
 	"github.com/devv4n/otus-hw/hw12_13_14_15_calendar/internal/config"
-	internalhttp "github.com/devv4n/otus-hw/hw12_13_14_15_calendar/internal/server/http"
+	"github.com/devv4n/otus-hw/hw12_13_14_15_calendar/internal/server/grpc"
 	memorystorage "github.com/devv4n/otus-hw/hw12_13_14_15_calendar/internal/storage/memory"
 	sqlstorage "github.com/devv4n/otus-hw/hw12_13_14_15_calendar/internal/storage/sql"
 	"github.com/devv4n/otus-hw/hw12_13_14_15_calendar/migrations"
@@ -60,29 +59,22 @@ func main() {
 
 	calendar := app.New(storage)
 
-	server := internalhttp.NewServer(calendar, cfg)
+	srv := grpc.New(cfg, calendar)
 
-	go func() {
-		<-ctx.Done()
+	errCh := make(chan error, 2)
 
-		ctx, cancel = context.WithTimeout(context.Background(), time.Second*3)
-		defer cancel()
-
-		slog.Info("stopping service")
-
-		storage.Close()
-
-		if err = server.Stop(ctx); err != nil {
-			slog.Error("failed to stop http server", "error", err)
-		}
-	}()
+	go srv.ServeUserAPI(errCh)
+	go srv.ServeGatewayAPI(ctx, errCh)
 
 	slog.Info("calendar is running...")
 
-	if err = server.Start(ctx); err != nil {
-		slog.Error("failed to start http server", "error", err)
-		cancel()
+	select {
+	case err = <-errCh:
+		slog.Error("Service encountered an error", "error", err)
+
 		os.Exit(1)
+	case <-ctx.Done():
+		slog.Info("Service stopped by user")
 	}
 }
 
