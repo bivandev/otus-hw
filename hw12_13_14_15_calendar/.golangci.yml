@@ -9,12 +9,12 @@ linters-settings:
     lines: 150
     statements: 80
 
-  depguard:
-    rules:
-      main:
-        allow:
-          - $gostd
-          - github.com/stretchr/testify/require
+#  depguard:
+#    rules:
+#      main:
+#        allow:
+#          - $gostd
+#          - github.com/stretchr/testify/require
 
 issues:
   exclude-rules:
@@ -25,9 +25,6 @@ issues:
         - gocyclo
         - gosec
 
-    - path: pkg/mod/
-      linters:
-        - all
   exclude-dirs:
     - go
     - pkg
