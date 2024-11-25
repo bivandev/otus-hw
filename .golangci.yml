@@ -16,6 +16,9 @@ linters-settings:
           - $gostd
           - github.com/stretchr/testify/require
 
+exclude-dirs:
+  - pkg
+
 issues:
   exclude-rules:
     - path: _test\.go
