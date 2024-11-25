@@ -24,6 +24,9 @@ issues:
         - dupl
         - gocyclo
         - gosec
+    - path: "pkg/mod/.*"
+      linters:
+        - all
 
 linters:
   disable-all: true
