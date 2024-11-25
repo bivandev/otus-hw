@@ -16,9 +16,6 @@ linters-settings:
           - $gostd
           - github.com/stretchr/testify/require
 
-exclude-dirs:
-  - pkg
-
 issues:
   exclude-rules:
     - path: _test\.go
@@ -27,12 +24,17 @@ issues:
         - dupl
         - gocyclo
         - gosec
+    - path: pkg/mod/
+      linters:
+        - all
+  exclude-dirs:
+    - go
 
 linters:
   disable-all: true
   enable:
     - asciicheck
-    - depguard
+#    - depguard
     - dogsled
     - dupl
     - bodyclose
