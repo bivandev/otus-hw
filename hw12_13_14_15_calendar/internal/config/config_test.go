@@ -61,16 +61,3 @@ func TestLoadConfig_InvalidJSON(t *testing.T) {
 	assert.Error(t, err)
 	assert.Contains(t, err.Error(), "failed to decode config")
 }
-
-func TestValidateConfig_DefaultValues(t *testing.T) {
-	cfg := &Config{
-		LogLvl: "invalid_level",
-		Port:   0,
-	}
-
-	err := ValidateConfig(cfg)
-	assert.NoError(t, err)
-
-	assert.Equal(t, "info", cfg.LogLvl)
-	assert.Equal(t, 8080, cfg.Port)
-}

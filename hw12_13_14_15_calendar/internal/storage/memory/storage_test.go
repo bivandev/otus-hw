@@ -40,10 +40,11 @@ func TestUpdateEvent(t *testing.T) {
 	assert.NoError(t, err)
 
 	updatedEvent := storage.Event{
+		ID:        id,
 		Title:     "Updated Event",
 		EventTime: event.EventTime.Add(2 * time.Hour),
 	}
-	err = st.UpdateEvent(ctx, id, updatedEvent)
+	err = st.UpdateEvent(ctx, updatedEvent)
 	assert.NoError(t, err)
 
 	events, _ := st.ListEventsForDay(ctx, updatedEvent.EventTime)

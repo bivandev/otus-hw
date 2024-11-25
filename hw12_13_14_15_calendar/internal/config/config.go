@@ -25,7 +25,7 @@ type Config struct {
 	LogLevel slog.Level
 }
 
-var InvalidConfig = errors.New("error invalid config")
+var ErrInvalidConfig = errors.New("error invalid config")
 
 // LoadConfig загружает и парсит конфигурацию из JSON файла.
 func LoadConfig(path string) (*Config, error) {
@@ -65,16 +65,8 @@ const (
 )
 
 func ValidateConfig(cfg *Config) error {
-	if _, ok := levelNames[cfg.LogLvl]; !ok {
-		cfg.LogLvl = defaultLogLevel
-	}
-
-	if cfg.Port == 0 {
-		cfg.Port = defaultPort
-	}
-
 	if cfg.PostgresDSN == "" && cfg.UsePostgres {
-		return fmt.Errorf("%w: postgres DSN is required", InvalidConfig)
+		return fmt.Errorf("%w: postgres DSN is required", ErrInvalidConfig)
 	}
 
 	return nil
@@ -90,7 +82,7 @@ func DefaultConfig(cfg *Config) error {
 	}
 
 	if cfg.PostgresDSN == "" && cfg.UsePostgres {
-		return fmt.Errorf("%w: postgres DSN is required", InvalidConfig)
+		cfg.UsePostgres = false
 	}
 
 	return nil

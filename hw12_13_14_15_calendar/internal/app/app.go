@@ -18,7 +18,7 @@ type Storage interface {
 	CreateEvent(ctx context.Context, event storage.Event) (string, error)
 
 	// UpdateEvent updates an existing event by its ID.
-	UpdateEvent(ctx context.Context, eventID string, event storage.Event) error
+	UpdateEvent(ctx context.Context, event storage.Event) error
 
 	// DeleteEvent deletes an event by its ID.
 	DeleteEvent(ctx context.Context, eventID string) error
@@ -39,11 +39,32 @@ func New(storage Storage) *App {
 	}
 }
 
-func (a *App) CreateEvent(ctx context.Context, id, title string) error {
-	_, err := a.storage.CreateEvent(ctx, storage.Event{ID: id, Title: title})
-	if err != nil {
-		return err
-	}
+// CreateEvent creates a new event.
+func (a *App) CreateEvent(ctx context.Context, event storage.Event) (string, error) {
+	return a.storage.CreateEvent(ctx, event)
+}
 
-	return nil
+// UpdateEvent updates an existing event by its ID.
+func (a *App) UpdateEvent(ctx context.Context, event storage.Event) error {
+	return a.storage.UpdateEvent(ctx, event)
+}
+
+// DeleteEvent deletes an event by its ID.
+func (a *App) DeleteEvent(ctx context.Context, eventID string) error {
+	return a.storage.DeleteEvent(ctx, eventID)
+}
+
+// ListEventsForDay returns a list of events for a specific day.
+func (a *App) ListEventsForDay(ctx context.Context, date time.Time) ([]storage.Event, error) {
+	return a.storage.ListEventsForDay(ctx, date)
+}
+
+// ListEventsForWeek returns a list of events for a specific week.
+func (a *App) ListEventsForWeek(ctx context.Context, startOfWeek time.Time) ([]storage.Event, error) {
+	return a.storage.ListEventsForWeek(ctx, startOfWeek)
+}
+
+// ListEventsForMonth returns a list of events for a specific month.
+func (a *App) ListEventsForMonth(ctx context.Context, startOfMonth time.Time) ([]storage.Event, error) {
+	return a.storage.ListEventsForMonth(ctx, startOfMonth)
 }

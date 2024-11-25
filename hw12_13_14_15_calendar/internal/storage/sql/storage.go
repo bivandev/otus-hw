@@ -27,11 +27,12 @@ func (s *Storage) Close() {
 // CreateEvent creates a new event in the database.
 func (s *Storage) CreateEvent(ctx context.Context, event storage.Event) (string, error) {
 	query := `
-		INSERT INTO events (title, event_datetime, duration, description, user_id, notify_before)
+		INSERT INTO events (id,title, event_datetime, duration, description, user_id, notify_before)
 		VALUES ($1, $2, $3, $4, $5, $6)
 		RETURNING id`
 	var id string
 	err := s.Pool.QueryRow(ctx, query,
+		event.ID,
 		event.Title,
 		event.EventTime,
 		event.Duration,
@@ -43,7 +44,7 @@ func (s *Storage) CreateEvent(ctx context.Context, event storage.Event) (string,
 }
 
 // UpdateEvent updates an existing event in the database.
-func (s *Storage) UpdateEvent(ctx context.Context, eventID string, event storage.Event) error {
+func (s *Storage) UpdateEvent(ctx context.Context, event storage.Event) error {
 	query := `
 		UPDATE events
 		SET title = $1, event_datetime = $2, duration = $3, description = $4, 
@@ -56,7 +57,7 @@ func (s *Storage) UpdateEvent(ctx context.Context, eventID string, event storage
 		event.Description,
 		event.UserID,
 		event.NotifyBefore,
-		eventID,
+		event.ID,
 	)
 	return err
 }
@@ -96,8 +97,8 @@ func (s *Storage) ListEventsForMonth(ctx context.Context, startOfMonth time.Time
 }
 
 // Helper method for listing events.
-func (s *Storage) listEvents(ctx context.Context, query string, param time.Time) ([]storage.Event, error) {
-	rows, err := s.Pool.Query(ctx, query, param)
+func (s *Storage) listEvents(ctx context.Context, query string, args ...any) ([]storage.Event, error) {
+	rows, err := s.Pool.Query(ctx, query, args)
 	if err != nil {
 		return nil, err
 	}
@@ -119,5 +120,6 @@ func (s *Storage) listEvents(ctx context.Context, query string, param time.Time)
 		}
 		events = append(events, event)
 	}
+
 	return events, rows.Err()
 }

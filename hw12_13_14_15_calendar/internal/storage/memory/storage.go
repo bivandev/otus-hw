@@ -34,15 +34,15 @@ func (s *Storage) CreateEvent(_ context.Context, event storage.Event) (string, e
 }
 
 // UpdateEvent updates an existing event in the in-memory store.
-func (s *Storage) UpdateEvent(_ context.Context, eventID string, event storage.Event) error {
+func (s *Storage) UpdateEvent(_ context.Context, event storage.Event) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
-	if _, exists := s.events[eventID]; !exists {
+	if _, exists := s.events[event.ID]; !exists {
 		return errors.New("event not found")
 	}
-	event.ID = eventID
-	s.events[eventID] = event
+
+	s.events[event.ID] = event
 	return nil
 }
 
