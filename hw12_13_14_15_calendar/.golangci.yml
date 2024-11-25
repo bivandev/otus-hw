@@ -30,6 +30,8 @@ issues:
         - all
   exclude-dirs:
     - go
+    - pkg
+    - third_party
 
 linters:
   disable-all: true
