@@ -4,6 +4,7 @@ import (
 	"context"
 	"time"
 
+	"github.com/devv4n/otus-hw/hw12_13_14_15_calendar/internal/rabbitmq"
 	"github.com/devv4n/otus-hw/hw12_13_14_15_calendar/internal/storage"
 )
 
@@ -31,6 +32,12 @@ type Storage interface {
 
 	// ListEventsForMonth returns a list of events for a specific month.
 	ListEventsForMonth(ctx context.Context, startOfMonth time.Time) ([]storage.Event, error)
+
+	// CleanOldEvents removes events older than 1 year.
+	CleanOldEvents(ctx context.Context) error
+
+	// GetEventsForNotification retrieves events happening within the next hour.
+	GetEventsForNotification(ctx context.Context) ([]storage.Event, error)
 }
 
 func New(storage Storage) *App {
@@ -67,4 +74,29 @@ func (a *App) ListEventsForWeek(ctx context.Context, startOfWeek time.Time) ([]s
 // ListEventsForMonth returns a list of events for a specific month.
 func (a *App) ListEventsForMonth(ctx context.Context, startOfMonth time.Time) ([]storage.Event, error) {
 	return a.storage.ListEventsForMonth(ctx, startOfMonth)
+}
+
+// GetNotification returns a list of notifications.
+func (a *App) GetNotification(ctx context.Context) ([]rabbitmq.Notification, error) {
+	events, err := a.storage.GetEventsForNotification(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	var notifications []rabbitmq.Notification
+	for i, event := range events {
+		notifications[i] = rabbitmq.Notification{
+			EventID:   event.ID,
+			Title:     event.Title,
+			StartTime: event.EventTime,
+			OwnerID:   event.UserID,
+		}
+	}
+
+	return notifications, nil
+}
+
+// CleanOldEvents removes events older than 1 year.
+func (a *App) CleanOldEvents(ctx context.Context) error {
+	return a.storage.CleanOldEvents(ctx)
 }

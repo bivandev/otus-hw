@@ -1,4 +1,4 @@
-BIN := "./bin/calendar"
+BIN := ./bin/calendar
 DOCKER_IMG="calendar:develop"
 PROTO_VERSION := v1
 PROTO_OUTPUT_DIR := pkg/calendar-api
@@ -9,6 +9,8 @@ LDFLAGS := -X main.release="develop" -X main.buildDate=$(shell date -u +%Y-%m-%d
 
 build:
 	go build -v -o $(BIN) -ldflags "$(LDFLAGS)" ./cmd/calendar
+	go build -v -o $(BIN)_scheduler -ldflags "$(LDFLAGS)" ./cmd/calendar_scheduler
+	go build -v -o $(BIN)_sender -ldflags "$(LDFLAGS)" ./cmd/calendar_sender
 
 run: build
 	$(BIN) -config ./configs/config.json

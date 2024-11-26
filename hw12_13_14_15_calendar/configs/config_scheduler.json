@@ -1,7 +1,6 @@
 {
-  "grpcAddr": 9000,
-  "restAddr": 3003,
   "logLevel": "debug",
   "postgresDsn": "postgres://postgres:postgres@localhost:5432/calendar?sslmode=disable",
-  "postgres": true
+  "postgres": true,
+  "rabbitMqUrl": ""
 }

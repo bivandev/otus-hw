@@ -9,37 +9,40 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+type Config struct {
+	LogLvl string `json:"logLevel"`
+}
+
 func TestLoadConfig_Success(t *testing.T) {
 	tempDir := t.TempDir()
 	configFile := filepath.Join(tempDir, "config.json")
 
-	cfgData := map[string]interface{}{
-		"logLevel": "debug",
-	}
+	cfgData := Config{LogLvl: "debug"}
 
 	file, err := os.Create(configFile)
 	assert.NoError(t, err)
 
-	defer file.Close() //nolint:errcheck
+	defer file.Close()
 
-	err = json.NewEncoder(file).Encode(cfgData)
+	err = json.NewEncoder(file).Encode(&cfgData)
 	assert.NoError(t, err)
 
-	cfg, err := LoadConfig(configFile)
+	var cfg Config
+	err = LoadConfig(configFile, &cfg)
 	assert.NoError(t, err)
-
 	assert.Equal(t, "debug", cfg.LogLvl)
-	assert.Equal(t, levelNames["debug"], cfg.LogLevel)
 }
 
 func TestLoadConfig_UnsupportedExtension(t *testing.T) {
 	tempDir := t.TempDir()
-	configFile := filepath.Join(tempDir, "txt")
+	configFile := filepath.Join(tempDir, "config.txt")
 
-	_, err := LoadConfig(configFile)
+	_, err := os.Create(configFile)
+	assert.NoError(t, err)
 
-	assert.Error(t, err)
-	assert.Equal(t, err, ErrConfigNotFound)
+	var cfg Config
+	err = LoadConfig(configFile, &cfg)
+	assert.ErrorIs(t, err, ErrUnsupportedExt)
 }
 
 func TestLoadConfig_InvalidJSON(t *testing.T) {
@@ -49,13 +52,13 @@ func TestLoadConfig_InvalidJSON(t *testing.T) {
 	file, err := os.Create(configFile)
 	assert.NoError(t, err)
 
-	defer file.Close() //nolint:errcheck
+	defer file.Close()
 
 	_, err = file.WriteString(`{invalid json}`)
 	assert.NoError(t, err)
 
-	_, err = LoadConfig(configFile)
-
+	var cfg Config
+	err = LoadConfig(configFile, &cfg)
 	assert.Error(t, err)
-	assert.Contains(t, err.Error(), "failed to decode config")
+	assert.ErrorIs(t, err, ErrInvalidConfig)
 }
