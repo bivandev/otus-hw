@@ -123,3 +123,38 @@ func (s *Storage) listEvents(ctx context.Context, query string, args ...any) ([]
 
 	return events, rows.Err()
 }
+
+func (s *Storage) GetEventsForNotification(ctx context.Context) ([]storage.Event, error) {
+	const query = `
+		SELECT id, title, event_datetime, user_id
+		FROM events
+		WHERE event_datetime <= NOW() + INTERVAL '1 hour'
+	`
+
+	rows, err := s.Pool.Query(ctx, query)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var events []storage.Event
+	for rows.Next() {
+		var event storage.Event
+		if err = rows.Scan(&event.ID, &event.Title, &event.EventTime, &event.UserID); err != nil {
+			return nil, err
+		}
+		events = append(events, event)
+	}
+	return events, nil
+}
+
+func (s *Storage) CleanOldEvents(ctx context.Context) error {
+	const query = `
+		DELETE FROM events
+		WHERE event_datetime < NOW() - INTERVAL '1 year'
+	`
+
+	_, err := s.Pool.Exec(ctx, query)
+
+	return err
+}

@@ -6,7 +6,6 @@ import (
 	"net"
 	"time"
 
-	"github.com/devv4n/otus-hw/hw12_13_14_15_calendar/internal/config"
 	"github.com/devv4n/otus-hw/hw12_13_14_15_calendar/internal/storage"
 	api "github.com/devv4n/otus-hw/hw12_13_14_15_calendar/pkg/calendar-api"
 	"google.golang.org/grpc"
@@ -17,7 +16,7 @@ const readHeaderTimeout = 10 * time.Second
 
 type Server struct {
 	app Application
-	cfg *config.Config
+	cfg Config
 
 	api.UnimplementedCalendarServiceServer
 }
@@ -42,7 +41,12 @@ type Application interface {
 	ListEventsForMonth(ctx context.Context, startOfMonth time.Time) ([]storage.Event, error)
 }
 
-func New(cfg *config.Config, app Application) *Server {
+type Config struct {
+	GRPC string
+	REST string
+}
+
+func New(app Application, cfg Config) *Server {
 	return &Server{
 		app: app,
 		cfg: cfg,

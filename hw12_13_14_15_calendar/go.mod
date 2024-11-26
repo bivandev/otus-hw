@@ -9,6 +9,7 @@ require (
 	github.com/google/uuid v1.6.0
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.24.0
 	github.com/jackc/pgx/v5 v5.7.1
+	github.com/rabbitmq/amqp091-go v1.10.0
 	github.com/rubenv/sql-migrate v1.7.0
 	github.com/stretchr/testify v1.9.0
 	google.golang.org/genproto/googleapis/api v0.0.0-20241118233622-e639e219e697

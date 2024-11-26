@@ -101,3 +101,35 @@ func sameDay(a, b time.Time) bool {
 	y2, m2, d2 := b.Date()
 	return y1 == y2 && m1 == m2 && d1 == d2
 }
+
+// GetEventsForNotification retrieves events happening within the next hour.
+func (s *Storage) GetEventsForNotification(_ context.Context) ([]storage.Event, error) {
+	now := time.Now()
+	threshold := now.Add(1 * time.Hour)
+
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+
+	var results []storage.Event
+	for _, event := range s.events {
+		if !event.EventTime.Before(now) && event.EventTime.Before(threshold) {
+			results = append(results, event)
+		}
+	}
+	return results, nil
+}
+
+// CleanOldEvents removes events older than 1 year.
+func (s *Storage) CleanOldEvents(_ context.Context) error {
+	threshold := time.Now().AddDate(-1, 0, 0)
+
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	for id, event := range s.events {
+		if event.EventTime.Before(threshold) {
+			delete(s.events, id)
+		}
+	}
+	return nil
+}

@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"errors"
 	"flag"
 	"fmt"
 	"log/slog"
@@ -38,12 +39,22 @@ func main() {
 
 	slog.SetDefault(logger)
 
-	cfg, err := config.LoadConfig(configFile)
-	if err != nil {
+	var cfg Config
+	if err := config.LoadConfig[Config](configFile, &cfg); err != nil {
+		if errors.Is(err, config.ErrConfigNotFound) && configFile == "config.json" {
+			DefaultConfig(&cfg)
+		}
+
 		slog.Error("error while loading configuration", "error", err)
 	}
 
-	lvl.Set(cfg.LogLevel)
+	if err := ValidateConfig(&cfg); err != nil {
+		slog.Error("error while validate configuration", "error", err)
+
+		os.Exit(1)
+	}
+
+	lvl.Set(config.LogLevelNames[cfg.LogLvl])
 
 	ctx, cancel := signal.NotifyContext(context.Background(),
 		syscall.SIGINT, syscall.SIGTERM, syscall.SIGHUP)
@@ -59,7 +70,13 @@ func main() {
 
 	calendar := app.New(storage)
 
-	srv := grpc.New(cfg, calendar)
+	srv := grpc.New(
+		calendar,
+		grpc.Config{
+			GRPC: cfg.GRPC,
+			REST: cfg.REST,
+		},
+	)
 
 	errCh := make(chan error, 2)
 
@@ -78,7 +95,7 @@ func main() {
 	}
 }
 
-func initStorage(ctx context.Context, cfg *config.Config) (app.Storage, error) {
+func initStorage(ctx context.Context, cfg Config) (app.Storage, error) {
 	if !cfg.UsePostgres {
 		return memorystorage.New(), nil
 	}

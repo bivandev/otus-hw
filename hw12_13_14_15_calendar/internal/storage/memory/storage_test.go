@@ -132,3 +132,56 @@ func TestListEventsForMonth(t *testing.T) {
 	monthEvents, _ := st.ListEventsForMonth(ctx, startOfMonth)
 	assert.Len(t, monthEvents, 2)
 }
+
+func TestGetEventsForNotification(t *testing.T) {
+	st := New()
+	now := time.Now()
+
+	st.CreateEvent(context.TODO(), storage.Event{
+		Title:     "Past Event",
+		EventTime: now.Add(-1 * time.Hour),
+	})
+	st.CreateEvent(context.TODO(), storage.Event{
+		Title:     "Upcoming Event",
+		EventTime: now.Add(30 * time.Minute),
+	})
+	st.CreateEvent(context.TODO(), storage.Event{
+		Title:     "Far Future Event",
+		EventTime: now.Add(2 * time.Hour),
+	})
+
+	events, err := st.GetEventsForNotification(context.TODO())
+	if err != nil {
+		t.Fatalf("expected no error, got %v", err)
+	}
+
+	if len(events) != 1 || events[0].Title != "Upcoming Event" {
+		t.Fatalf("unexpected events: %+v", events)
+	}
+}
+
+func TestCleanOldEvents(t *testing.T) {
+	st := New()
+	now := time.Now()
+
+	st.CreateEvent(context.TODO(), storage.Event{
+		Title:     "Old Event",
+		EventTime: now.AddDate(-2, 0, 0),
+	})
+	st.CreateEvent(context.TODO(), storage.Event{
+		Title:     "Recent Event",
+		EventTime: now,
+	})
+
+	err := st.CleanOldEvents(context.TODO())
+	if err != nil {
+		t.Fatalf("expected no error, got %v", err)
+	}
+
+	events, _ := st.listEventsByFilter(func(_ storage.Event) bool {
+		return true
+	})
+	if len(events) != 1 || events[0].Title != "Recent Event" {
+		t.Fatalf("unexpected events: %+v", events)
+	}
+}
