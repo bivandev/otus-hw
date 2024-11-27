@@ -1,0 +1,17 @@
+replicaCount: 3
+
+image:
+  repository: your-docker-image
+  tag: latest
+
+service:
+  name: calendar-service
+  type: ClusterIP
+  port: 80
+
+ingress:
+  enabled: true
+  hosts:
+    - host: calendar.local
+      paths:
+        - /
