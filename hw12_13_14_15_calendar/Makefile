@@ -56,4 +56,17 @@ generate: ## Generate pb files from given proto files
 		--grpc-gateway_opt=generate_unbound_methods=true \
 		./api/EventService.proto
 
-.PHONY: build run build-img run-img version test lint generate lint-fix
+up:
+	docker-compose -f ./deployments/docker-compose.yaml up -d --build
+
+down:
+	docker-compose -f ./deployments/docker-compose.yaml  down
+
+integration-tests:
+	@echo "Запуск интеграционных тестов..."
+	@set -e; \
+	trap 'docker-compose -f ./deployments/docker-compose.yaml -f ./deployments/docker-compose.test.yaml down --volumes --remove-orphans' EXIT; \
+	docker-compose -f ./deployments/docker-compose.yaml -f ./deployments/docker-compose.test.yaml up --build --abort-on-container-exit --exit-code-from integration_tests
+	@echo "Интеграционные тесты завершены."
+
+.PHONY: build run build-img run-img version test lint generate lint-fix up down integration-tests

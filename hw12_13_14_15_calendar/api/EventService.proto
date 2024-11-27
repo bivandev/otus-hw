@@ -50,7 +50,7 @@ service CalendarService {
 
 
 message Event {
-  string id = 1;
+  optional string id = 1;
   string title = 2;
   google.protobuf.Timestamp event_time = 3;
   int64 duration = 4;

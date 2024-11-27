@@ -1,7 +1,7 @@
 {
-  "grpcAddr": 9000,
-  "restAddr": 3003,
+  "grpcAddr": ":9000",
+  "restAddr": ":8888",
   "logLevel": "debug",
-  "postgresDsn": "postgres://postgres:postgres@localhost:5432/calendar?sslmode=disable",
+  "postgresDsn": "postgres://postgres:postgres@postgres:5432/calendar?sslmode=disable",
   "postgres": true
 }

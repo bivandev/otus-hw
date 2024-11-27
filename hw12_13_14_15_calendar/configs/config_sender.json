@@ -1,4 +1,4 @@
 {
   "logLevel": "debug",
-  "rabbitMqUrl": ""
+  "rabbitMqUrl": "amqp://guest:guest@rabbitmq:5672/"
 }

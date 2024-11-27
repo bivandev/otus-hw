@@ -83,7 +83,7 @@ func (a *App) GetNotification(ctx context.Context) ([]rabbitmq.Notification, err
 		return nil, err
 	}
 
-	var notifications []rabbitmq.Notification
+	notifications := make([]rabbitmq.Notification, len(events))
 	for i, event := range events {
 		notifications[i] = rabbitmq.Notification{
 			EventID:   event.ID,

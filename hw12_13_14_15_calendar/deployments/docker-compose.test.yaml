@@ -1,0 +1,12 @@
+services:
+    integration_tests:
+      build:
+        context: ..
+        dockerfile: ./integration_tests/Dockerfile
+      depends_on:
+        - calendar
+        - postgres
+        - rabbitmq
+        - sender
+        - scheduler
+      command: [ "ginkgo", "--fail-fast", "--slow-spec-threshold=5s", ". " ]
