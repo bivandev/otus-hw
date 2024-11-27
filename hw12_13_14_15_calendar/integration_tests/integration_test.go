@@ -3,10 +3,11 @@ package integrationtests
 import (
 	"bytes"
 	"encoding/json"
+	"net/http"
+
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/rabbitmq/amqp091-go"
-	"net/http"
 )
 
 type RabbitMQClient struct {

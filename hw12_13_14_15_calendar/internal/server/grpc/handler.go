@@ -3,6 +3,7 @@ package grpc
 import (
 	"context"
 	"errors"
+
 	api "github.com/devv4n/otus-hw/hw12_13_14_15_calendar/pkg/calendar-api"
 	"google.golang.org/protobuf/types/known/emptypb"
 )

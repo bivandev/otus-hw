@@ -2,10 +2,10 @@ package sqlstorage
 
 import (
 	"context"
-	"github.com/google/uuid"
 	"time"
 
 	"github.com/devv4n/otus-hw/hw12_13_14_15_calendar/internal/storage"
+	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
@@ -98,7 +98,16 @@ func (s *Storage) ListEventsForWeek(ctx context.Context, startOfWeek time.Time) 
 
 // ListEventsForMonth retrieves events for a specific month.
 func (s *Storage) ListEventsForMonth(ctx context.Context, startOfMonth time.Time) ([]storage.Event, error) {
-	sqlDate := time.Date(startOfMonth.Year(), startOfMonth.Month(), startOfMonth.Day(), 0, 0, 0, 0, startOfMonth.Location())
+	sqlDate := time.Date(
+		startOfMonth.Year(),
+		startOfMonth.Month(),
+		startOfMonth.Day(),
+		0,
+		0,
+		0,
+		0,
+		startOfMonth.Location(),
+	)
 
 	query := `
 		SELECT id, title, event_datetime, duration, description, user_id, notify_before
