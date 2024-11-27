@@ -29,6 +29,7 @@ issues:
     - go
     - pkg
     - third_party
+    - integration_tests
 
 linters:
   disable-all: true

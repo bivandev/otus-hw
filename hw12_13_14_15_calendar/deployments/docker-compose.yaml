@@ -6,3 +6,35 @@ services:
     environment:
       POSTGRES_PASSWORD: postgres
       POSTGRES_DB: calendar
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: rabbitmq
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+  calendar:
+    build:
+      context: ..
+      dockerfile: build/Dockerfile
+    depends_on:
+      - postgres
+    ports:
+      - "8888:8888"
+      - "9000:9000"
+
+  scheduler:
+    build:
+      context: ..
+      dockerfile: build/Dockerfile.scheduler
+    depends_on:
+      - postgres
+      - rabbitmq
+      - calendar
+  sender:
+    build:
+      context: ..
+      dockerfile: build/Dockerfile.sender
+    depends_on:
+      - rabbitmq
+      - scheduler
+      - calendar

@@ -1,6 +1,7 @@
 {
   "logLevel": "debug",
-  "postgresDsn": "postgres://postgres:postgres@localhost:5432/calendar?sslmode=disable",
+  "postgresDsn": "postgres://postgres:postgres@postgres:5432/calendar?sslmode=disable",
   "postgres": true,
-  "rabbitMqUrl": ""
+  "rabbitMqUrl": "amqp://guest:guest@rabbitmq:5672/",
+  "interval": 10
 }

@@ -75,11 +75,12 @@ func run(cfg Config) error {
 		syscall.SIGINT, syscall.SIGTERM, syscall.SIGHUP)
 	defer cancel()
 
-	ticker := time.NewTicker(cfg.Interval)
+	ticker := time.NewTicker(time.Duration(cfg.Interval) * time.Second)
 	defer ticker.Stop()
 
 	errCh := make(chan error, 1)
 
+	slog.Info("service start...")
 	go func() {
 		for {
 			select {

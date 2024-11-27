@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/devv4n/otus-hw/hw12_13_14_15_calendar/internal/storage"
+	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
@@ -26,9 +27,13 @@ func (s *Storage) Close() {
 
 // CreateEvent creates a new event in the database.
 func (s *Storage) CreateEvent(ctx context.Context, event storage.Event) (string, error) {
+	if event.ID == "" {
+		event.ID = uuid.NewString()
+	}
+
 	query := `
-		INSERT INTO events (id,title, event_datetime, duration, description, user_id, notify_before)
-		VALUES ($1, $2, $3, $4, $5, $6)
+		INSERT INTO events (id, title, event_datetime, duration, description, user_id, notify_before)
+		VALUES ($1, $2, $3, $4, $5, $6, $7)
 		RETURNING id`
 	var id string
 	err := s.Pool.QueryRow(ctx, query,
@@ -71,34 +76,49 @@ func (s *Storage) DeleteEvent(ctx context.Context, eventID string) error {
 
 // ListEventsForDay retrieves events for a specific day.
 func (s *Storage) ListEventsForDay(ctx context.Context, date time.Time) ([]storage.Event, error) {
+	sqlDate := time.Date(date.Year(), date.Month(), date.Day(), 0, 0, 0, 0, date.Location())
+
 	query := `
-		SELECT id, title, event_datetime, duration, description, user_id, notify_before
-		FROM events
-		WHERE DATE(event_datetime) = DATE($1)`
-	return s.listEvents(ctx, query, date)
+        SELECT id, title, event_datetime, duration, description, user_id, notify_before
+        FROM events
+        WHERE event_datetime::date = $1::date`
+	return s.listEvents(ctx, query, sqlDate)
 }
 
 // ListEventsForWeek retrieves events for a specific week.
 func (s *Storage) ListEventsForWeek(ctx context.Context, startOfWeek time.Time) ([]storage.Event, error) {
+	sqlDate := time.Date(startOfWeek.Year(), startOfWeek.Month(), startOfWeek.Day(), 0, 0, 0, 0, startOfWeek.Location())
+
 	query := `
 		SELECT id, title, event_datetime, duration, description, user_id, notify_before
 		FROM events
-		WHERE event_datetime >= $1 AND event_datetime < $1 + INTERVAL '7 days'`
-	return s.listEvents(ctx, query, startOfWeek)
+		WHERE event_datetime::date >= $1::date AND event_datetime::date < $1::date + INTERVAL '7 days'`
+	return s.listEvents(ctx, query, sqlDate)
 }
 
 // ListEventsForMonth retrieves events for a specific month.
 func (s *Storage) ListEventsForMonth(ctx context.Context, startOfMonth time.Time) ([]storage.Event, error) {
+	sqlDate := time.Date(
+		startOfMonth.Year(),
+		startOfMonth.Month(),
+		startOfMonth.Day(),
+		0,
+		0,
+		0,
+		0,
+		startOfMonth.Location(),
+	)
+
 	query := `
 		SELECT id, title, event_datetime, duration, description, user_id, notify_before
 		FROM events
-		WHERE event_datetime >= $1 AND event_datetime < $1 + INTERVAL '1 month'`
-	return s.listEvents(ctx, query, startOfMonth)
+		WHERE event_datetime::date >= $1::date AND event_datetime::date < $1::date + INTERVAL '1 month'`
+	return s.listEvents(ctx, query, sqlDate)
 }
 
 // Helper method for listing events.
 func (s *Storage) listEvents(ctx context.Context, query string, args ...any) ([]storage.Event, error) {
-	rows, err := s.Pool.Query(ctx, query, args)
+	rows, err := s.Pool.Query(ctx, query, args...)
 	if err != nil {
 		return nil, err
 	}
@@ -143,6 +163,7 @@ func (s *Storage) GetEventsForNotification(ctx context.Context) ([]storage.Event
 		if err = rows.Scan(&event.ID, &event.Title, &event.EventTime, &event.UserID); err != nil {
 			return nil, err
 		}
+
 		events = append(events, event)
 	}
 	return events, nil

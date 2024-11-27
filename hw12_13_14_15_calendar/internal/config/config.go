@@ -42,8 +42,8 @@ func LoadConfig[T any](path string, cfg *T) error {
 		}
 	}()
 
-	if err = json.NewDecoder(file).Decode(cfg); err != nil {
-		return fmt.Errorf("%w: failed to decode config", ErrInvalidConfig)
+	if err = json.NewDecoder(file).Decode(&cfg); err != nil {
+		return fmt.Errorf("%w: failed to decode config: %w", ErrInvalidConfig, err)
 	}
 
 	return nil
