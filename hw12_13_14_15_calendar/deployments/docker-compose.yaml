@@ -19,7 +19,7 @@ services:
     depends_on:
       - postgres
     ports:
-      - "8888:8888"
+      - "8080:8080"
       - "9000:9000"
 
   scheduler:

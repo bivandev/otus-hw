@@ -97,7 +97,7 @@ var eventJSON = `{
 }`
 
 var _ = Describe("Event Management", func() {
-	baseURL := "http://calendar:8888/v1/events"
+	baseURL := "http://calendar:8080/v1/events"
 
 	Context("Adding events", func() {
 		It("should successfully add an event", func() {
@@ -124,7 +124,7 @@ var _ = Describe("Event Management", func() {
 })
 
 var _ = Describe("Event Listing", func() {
-	baseURL := "http://calendar:8888/v1/events"
+	baseURL := "http://calendar:8080/v1/events"
 
 	Context("Retrieving events", func() {
 		BeforeEach(func() {

@@ -1,6 +1,6 @@
 {
   "grpcAddr": ":9000",
-  "restAddr": ":8888",
+  "restAddr": ":8080",
   "logLevel": "debug",
   "postgresDsn": "postgres://postgres:postgres@postgres:5432/calendar?sslmode=disable",
   "postgres": true
